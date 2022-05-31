@@ -2,7 +2,7 @@ use clap::Parser;
 use csv::Trim;
 use rust_transaction_engine::account::Account;
 use rust_transaction_engine::transaction::Transaction;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 use std::path::PathBuf;
@@ -21,9 +21,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         .trim(Trim::All)
         .flexible(true)
         .from_path(&args.input)?;
-    let mut history_per_client = BTreeMap::new();
+    let mut history_per_client = HashMap::new();
 
-    let mut accounts = BTreeMap::new();
+    let mut accounts = HashMap::new();
 
     for result in rdr.deserialize() {
         let record: Transaction = result?;
@@ -35,10 +35,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Add a BTreeMap to store historical transactions
         if !history_per_client.contains_key(&record.client) {
-            history_per_client.insert(record.client, BTreeMap::new());
+            history_per_client.insert(record.client, HashMap::new());
         }
 
-        let ts: &mut BTreeMap<u32, Transaction> =
+        let ts: &mut HashMap<u32, Transaction> =
             history_per_client.get_mut(&record.client).unwrap();
         let acc = accounts.get_mut(&record.client).unwrap();
 
@@ -50,7 +50,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn write_to_stdout(accounts: &BTreeMap<u16, Account>) -> Result<(), Box<dyn Error>> {
+fn write_to_stdout(accounts: &HashMap<u16, Account>) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
 
     for (_client, account) in accounts {
