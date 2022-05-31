@@ -1,7 +1,7 @@
 use super::transaction::{TStatus, TType, Transaction};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Account {
     client: u16,
     available: f64,
@@ -140,20 +140,27 @@ mod tests {
 
         acc.deposit(&15.0);
 
-        let tr = Transaction {
-            client: 1,
-            tx: 1,
-            tt: TType::Withdrawal,
-            amount: Some(10.0),
-            status: TStatus::Ok,
-        };
+        acc.apply_transaction(
+            &Transaction {
+                client: 1,
+                tx: 1,
+                tt: TType::Withdrawal,
+                amount: Some(10.0),
+                status: TStatus::Ok,
+            },
+            None,
+        );
 
-        acc.apply_transaction(&tr, None);
-
-        assert_eq!(acc.total, 5.0);
-        assert_eq!(acc.available, 5.0);
-        assert_eq!(acc.held, 0.0);
-        assert_eq!(acc.locked, false);
+        assert_eq!(
+            acc,
+            Account {
+                client: 1,
+                total: 5.0,
+                available: 5.0,
+                held: 0.0,
+                locked: false,
+            }
+        )
     }
 
     #[test]
@@ -170,10 +177,16 @@ mod tests {
 
         acc.apply_transaction(&tr, None);
 
-        assert_eq!(acc.total, 10.0);
-        assert_eq!(acc.available, 10.0);
-        assert_eq!(acc.held, 0.0);
-        assert_eq!(acc.locked, false);
+        assert_eq!(
+            acc,
+            Account {
+                client: 1,
+                total: 10.0,
+                available: 10.0,
+                held: 0.0,
+                locked: false,
+            }
+        );
     }
 
     #[test]
@@ -189,17 +202,18 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-
-        let dtr = Transaction {
-            client: 1,
-            tx: 1,
-            tt: TType::Dispute,
-            amount: None,
-            status: TStatus::Ok,
-        };
-
+        
         acc.apply_transaction(&wtr, None);
-        acc.apply_transaction(&dtr, Some(&mut wtr));
+        acc.apply_transaction(
+            &Transaction {
+                client: 1,
+                tx: 1,
+                tt: TType::Dispute,
+                amount: None,
+                status: TStatus::Ok,
+            },
+            Some(&mut wtr),
+        );
 
         assert_eq!(acc.total, 15.0);
         assert_eq!(acc.available, 5.0);
