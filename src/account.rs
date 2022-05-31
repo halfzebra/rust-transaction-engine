@@ -1,13 +1,27 @@
 use super::transaction::{TStatus, TType, Transaction};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Account {
     client: u16,
+    #[serde(serialize_with = "to_precision_4")]
     available: f64,
+    #[serde(serialize_with = "to_precision_4")]
     held: f64,
+    #[serde(serialize_with = "to_precision_4")]
     total: f64,
     locked: bool,
+}
+
+fn to_precision_4<S>(x: &f64, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_f64(to_fixed(x, 4))
+}
+
+fn to_fixed(n: &f64, precision: i32) -> f64 {
+    (n * f64::powi(10.0, precision)).round() / f64::powi(10.0, precision)
 }
 
 impl Account {
@@ -202,7 +216,6 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        
         acc.apply_transaction(&wtr, None);
         acc.apply_transaction(
             &Transaction {

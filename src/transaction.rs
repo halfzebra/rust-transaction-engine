@@ -25,13 +25,16 @@ impl Default for TStatus {
 
 #[derive(Debug, Deserialize)]
 pub struct Transaction {
+    #[serde(skip, default)]
+    pub status: TStatus,
+
     #[serde(rename = "type")]
     pub tt: TType,
     pub client: u16,
     pub tx: u32,
+
+    #[serde(deserialize_with = "csv::invalid_option")]
     pub amount: Option<f64>,
-    #[serde(skip, default)]
-    pub status: TStatus,
 }
 
 impl Transaction {
