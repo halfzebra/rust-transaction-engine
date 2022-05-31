@@ -1,11 +1,10 @@
 use clap::Parser;
+use csv::Trim;
 use rust_transaction_engine::account::Account;
 use rust_transaction_engine::transaction::Transaction;
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::fs::File;
 use std::io;
-use std::io::BufReader;
 use std::path::PathBuf;
 use std::process;
 
@@ -17,9 +16,12 @@ struct Args {
 
 fn run() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    let f = File::open(&args.input)?;
-    let reader = BufReader::new(f);
-    let mut rdr = csv::Reader::from_reader(reader);
+
+    let mut rdr = csv::ReaderBuilder::new()
+        .trim(Trim::All)
+        .flexible(true)
+        .from_path(&args.input)?;
+
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let mut history_per_client = BTreeMap::new();
 
