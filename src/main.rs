@@ -21,8 +21,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         .trim(Trim::All)
         .flexible(true)
         .from_path(&args.input)?;
-
-    let mut wtr = csv::Writer::from_writer(io::stdout());
     let mut history_per_client = BTreeMap::new();
 
     let mut accounts = BTreeMap::new();
@@ -47,7 +45,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         acc.apply_transaction(&record, ts.get_mut(&record.tx));
     }
 
-    for (_client, account) in &accounts {
+    write_to_stdout(&accounts)?;
+
+    Ok(())
+}
+
+fn write_to_stdout(accounts: &BTreeMap<u16, Account>) -> Result<(), Box<dyn Error>> {
+    let mut wtr = csv::Writer::from_writer(io::stdout());
+
+    for (_client, account) in accounts {
         wtr.serialize(&account)?;
     }
 
