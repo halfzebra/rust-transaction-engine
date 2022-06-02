@@ -73,7 +73,7 @@ impl Account {
 
     pub fn apply_transaction(
         &mut self,
-        transaction: &Transaction,
+        transaction: &mut Transaction,
         preceeding_transaction: Option<&mut Transaction>,
     ) {
         match (&transaction.tt, preceeding_transaction) {
@@ -84,7 +84,12 @@ impl Account {
             }
             (TType::Withdrawal, None) => {
                 if let Some(amount) = &transaction.amount {
+                    if self.available < *amount {
+                        transaction.status = TStatus::Declined;
+                        return ()
+                    }
                     self.withdraw(&amount);
+                    
                 }
             }
             (TType::Dispute, Some(prev_transaction)) => {
@@ -156,7 +161,7 @@ mod tests {
         acc.deposit(&15.0);
 
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Withdrawal,
@@ -182,7 +187,7 @@ mod tests {
     fn basic_deposit() {
         let mut acc = Account::new(1u16);
 
-        let tr = Transaction {
+        let mut tr = Transaction {
             client: 1,
             tx: 1,
             tt: TType::Deposit,
@@ -190,7 +195,7 @@ mod tests {
             status: TStatus::Ok,
         };
 
-        acc.apply_transaction(&tr, None);
+        acc.apply_transaction(&mut tr, None);
 
         assert_eq!(
             acc,
@@ -217,9 +222,9 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        acc.apply_transaction(&wtr, None);
+        acc.apply_transaction(&mut wtr, None);
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Dispute,
@@ -254,7 +259,7 @@ mod tests {
             status: TStatus::Ok,
         };
 
-        let dispt = Transaction {
+        let mut dispt = Transaction {
             client: 1,
             tx: 1,
             tt: TType::Dispute,
@@ -262,8 +267,8 @@ mod tests {
             status: TStatus::Ok,
         };
 
-        acc.apply_transaction(&dpstt, None);
-        acc.apply_transaction(&dispt, Some(&mut dpstt));
+        acc.apply_transaction(&mut dpstt, None);
+        acc.apply_transaction(&mut dispt, Some(&mut dpstt));
 
         assert_eq!(acc.total, 10.0);
         assert_eq!(acc.available, 0.0);
@@ -285,9 +290,9 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        acc.apply_transaction(&wtr, None);
+        acc.apply_transaction(&mut wtr, None);
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Dispute,
@@ -298,7 +303,7 @@ mod tests {
         );
 
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Resolve,
@@ -326,9 +331,9 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        acc.apply_transaction(&dpstt, None);
+        acc.apply_transaction(&mut dpstt, None);
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Dispute,
@@ -338,7 +343,7 @@ mod tests {
             Some(&mut dpstt),
         );
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Resolve,
@@ -368,9 +373,9 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        acc.apply_transaction(&wtr, None);
+        acc.apply_transaction(&mut wtr, None);
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Dispute,
@@ -381,7 +386,7 @@ mod tests {
         );
 
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Chargeback,
@@ -409,9 +414,9 @@ mod tests {
             amount: Some(10.0),
             status: TStatus::Ok,
         };
-        acc.apply_transaction(&dpstt, None);
+        acc.apply_transaction(&mut dpstt, None);
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Dispute,
@@ -421,7 +426,7 @@ mod tests {
             Some(&mut dpstt),
         );
         acc.apply_transaction(
-            &Transaction {
+            &mut Transaction {
                 client: 1,
                 tx: 1,
                 tt: TType::Chargeback,

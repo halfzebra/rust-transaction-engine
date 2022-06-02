@@ -25,7 +25,7 @@ fn process(p: &PathBuf) -> Result<BTreeMap<u16, Account>, Box<dyn Error>> {
     let mut accounts = BTreeMap::new();
 
     for result in rdr.deserialize() {
-        let record: Transaction = result?;
+        let mut record: Transaction = result?;
 
         // Create an account for new client ids
         if !accounts.contains_key(&record.client) {
@@ -41,8 +41,9 @@ fn process(p: &PathBuf) -> Result<BTreeMap<u16, Account>, Box<dyn Error>> {
             history_per_client.get_mut(&record.client).unwrap();
 
         let acc = accounts.get_mut(&record.client).unwrap();
+        let prev = ts.get_mut(&record.tx);
 
-        acc.apply_transaction(&record, ts.get_mut(&record.tx));
+        acc.apply_transaction(&mut record, prev);
 
         if !ts.contains_key(&record.tx) && record.can_be_disputed() {
             ts.insert(record.tx, record);

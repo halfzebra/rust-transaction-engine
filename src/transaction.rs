@@ -15,6 +15,7 @@ pub enum TStatus {
     Ok,
     Disputed,
     Chargedback,
+    Declined,
 }
 
 impl Default for TStatus {
