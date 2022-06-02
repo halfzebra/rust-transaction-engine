@@ -7,9 +7,3 @@ fn main() {
         process::exit(1);
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn basic() {}
-}
