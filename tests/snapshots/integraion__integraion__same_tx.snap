@@ -1,0 +1,7 @@
+---
+source: tests/integraion.rs
+expression: "String::from_utf8(cmd.assert().success().get_output().stdout.clone())?"
+---
+client,available,held,total,locked
+1,10.0,0.0,10.0,false
+

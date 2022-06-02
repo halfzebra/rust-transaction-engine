@@ -147,6 +147,7 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn basic_withdrawal() {
@@ -228,10 +229,16 @@ mod tests {
             Some(&mut wtr),
         );
 
-        assert_eq!(acc.total, 15.0);
-        assert_eq!(acc.available, 5.0);
-        assert_eq!(acc.held, 10.0);
-        assert_eq!(acc.locked, false);
+        assert_eq!(
+            acc,
+            Account {
+                client: 1,
+                total: 15.0,
+                available: 5.0,
+                held: 10.0,
+                locked: false,
+            }
+        );
         assert_eq!(wtr.status, TStatus::Disputed)
     }
 
@@ -383,8 +390,6 @@ mod tests {
             },
             Some(&mut wtr),
         );
-
-        dbg!(&acc);
 
         assert_eq!(acc.total, 5.0);
         assert_eq!(acc.available, 5.0);
