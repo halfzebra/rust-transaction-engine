@@ -1,0 +1,7 @@
+---
+source: tests/integraion.rs
+expression: stdout
+---
+client,available,held,total,locked
+1,865.3954,0.0,865.3954,false
+

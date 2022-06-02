@@ -47,4 +47,15 @@ mod integraion {
 
         Ok(())
     }
+
+    #[test]
+    fn long_number_format() -> Result<(), Box<dyn std::error::Error>> {
+        let mut cmd = Command::cargo_bin("rust-transaction-engine")?;
+        cmd.arg("./examples/long-number-format.csv");
+        let stdout = String::from_utf8(cmd.assert().success().get_output().stdout.clone())?;
+
+        insta::assert_snapshot!(stdout);
+
+        Ok(())
+    }
 }
